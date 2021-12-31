@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 
-	pc42obj "github.com/rzrbld/puml-c4-to-object-go/main"
+	pc42obj "github.com/rzrbld/puml-c4-to-object-go"
+	"github.com/rzrbld/puml-c4-to-object-go/types"
 )
 
 func main() {
@@ -47,8 +49,11 @@ func main() {
 	SHOW_LEGEND()
 	@enduml
 	`
-	test := pc42obj.Encode(pumlC4Str)
+	var test = &types.EncodedObj{}
+	test = pc42obj.Encode(pumlC4Str)
+	foo_marshalled, _ := json.Marshal(test)
+	fmt.Println(string(foo_marshalled)) // write response to ResponseWriter (w)
 
-	fmt.Println("OUTPUT", test)
+	// fmt.Println("OUTPUT", b)
 
 }
