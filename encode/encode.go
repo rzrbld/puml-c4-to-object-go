@@ -9,11 +9,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func ReadStrings(pumlc4String string) ([]*types.GlobalType, []*types.GlobalType) {
+func ReadStrings(pumlc4String string) ([]*types.ParserGenericType, []*types.ParserGenericType) {
 
-	frNodes := []*types.GlobalType{}
-	frRels := []*types.GlobalType{}
-	var obj = &types.GlobalType{}
+	frNodes := []*types.ParserGenericType{}
+	frRels := []*types.ParserGenericType{}
+	var obj = &types.ParserGenericType{}
 	str := string(pumlc4String)
 
 	reBoundary := regexp.MustCompile(`(?m)(.*)(\(.*\)).*\{((.|\n)*)}`)
@@ -73,12 +73,12 @@ func ReadStrings(pumlc4String string) ([]*types.GlobalType, []*types.GlobalType)
 	return frNodes, frRels
 }
 
-func ParseMatch(match string, isBoundary bool, bAlias string) *types.GlobalType {
+func ParseMatch(match string, isBoundary bool, bAlias string) *types.ParserGenericType {
 
 	var obj = make(map[string]interface{})
 	var boundaryAlias string
 	var isRel bool
-	result := &types.GlobalType{}
+	result := &types.ParserGenericType{}
 	// 0 is always boundary
 	strParts := strings.Split(match, "(")
 	nodeType := strings.TrimSpace(strParts[0])

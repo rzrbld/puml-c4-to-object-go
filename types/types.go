@@ -1,5 +1,28 @@
 package types
 
+type GenericC4Type struct {
+	Alias string `json:"alias"`
+	Label string `json:"label"`
+	Techn string `json:"techn"`
+	Descr string `json:"descr"`
+	Type  string `json:"type"`
+	GType string `json:"gtype"`
+	Index string `json:"index"`
+	From  string `json:"from"`
+	To    string `json:"to"`
+}
+
+type ParserGenericType struct {
+	Object        map[string]interface{} `json:"Object"`
+	BoundaryAlias string                 `json:"BoundaryAlias"`
+	IsRelation    bool                   `json:"IsRelation"`
+}
+
+type EncodedObj struct {
+	Nodes []*ParserGenericType `json:"Nodes"`
+	Rels  []*ParserGenericType `json:"Rels"`
+}
+
 type CompCont struct {
 	Alias string `json:"alias"`
 	Label string `json:"label"`
@@ -49,53 +72,4 @@ type RelIndex struct {
 	Techn string `json:"techn"`
 	Descr string `json:"descr"`
 	GType string `json:"gtype"`
-}
-
-type GraphObj struct {
-	Alias string `json:"alias"`
-	Label string `json:"label"`
-	Techn string `json:"techn"`
-	Descr string `json:"descr"`
-	Type  string `json:"type"`
-	GType string `json:"gtype"`
-	Index string `json:"index"`
-	From  string `json:"from"`
-	To    string `json:"to"`
-}
-
-type GlobalType struct {
-	Object        map[string]interface{} `json:"Object"`
-	BoundaryAlias string                 `json:"BoundaryAlias"`
-	IsRelation    bool                   `json:"IsRelation"`
-}
-
-type Person struct {
-	Name string `json:"_key"`
-	Age  int    `json:"age"`
-}
-
-type MyEdgeObject struct {
-	From string `json:"_from"`
-	To   string `json:"_to"`
-	Type string `json:"type"`
-}
-
-type Event struct {
-	After      string   `json:"after"`
-	Before     string   `json:"before"`
-	Repository Repotype `json:"repository"`
-}
-
-type Repotype struct {
-	Clone_url string `json:"clone_url"`
-}
-
-type Item struct {
-	Id   int64
-	Name string
-}
-
-type EncodedObj struct {
-	Nodes []*GlobalType `json:"Nodes"`
-	Rels  []*GlobalType `json:"Rels"`
 }

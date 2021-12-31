@@ -5,7 +5,7 @@ import (
 	"github.com/rzrbld/puml-c4-to-object-go/types"
 )
 
-func Encode(pumlc4String string) *types.EncodedObj {
+func Parse(pumlc4String string) *types.EncodedObj {
 	var encObj = &types.EncodedObj{}
 	readedNodes, readedRels := encode.ReadStrings(pumlc4String)
 	encObj.Nodes = readedNodes

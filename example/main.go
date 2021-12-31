@@ -4,56 +4,101 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/mitchellh/mapstructure"
 	pc42obj "github.com/rzrbld/puml-c4-to-object-go"
 	"github.com/rzrbld/puml-c4-to-object-go/types"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	pumlC4Str := `
-	@startuml
-	!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+	// set loglevel to Error
+	log.SetLevel(log.ErrorLevel)
+
+	// put plantUML C4 file content in to this variable
+	pumlC4Str := `@startuml "enterprise"
+	!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+	' uncomment the following line and comment the first to use locally
+	' !include C4_Context.puml
 	
-	SHOW_PERSON_OUTLINE()
-	AddElementTag("backend container", $fontColor=$ELEMENT_FONT_COLOR, $bgColor="#335DA5", $shape=EightSidedShape())
-	AddRelTag("async", $textColor=$ARROW_COLOR, $lineColor=$ARROW_COLOR, $lineStyle=DashedLine())
-	AddRelTag("sync/async", $textColor=$ARROW_COLOR, $lineColor=$ARROW_COLOR, $lineStyle=DottedLine())
+	LAYOUT_TOP_DOWN()
+	'LAYOUT_AS_SKETCH()
+	LAYOUT_WITH_LEGEND()
 	
-	title Container diagram for Internet Banking System
+	Person(customer, "Customer", "A customer of Widgets Limited.")
 	
-	Person(customer, Customer, "A customer of the bank, with personal bank accounts")
+	Enterprise_Boundary(c0, "Widgets Limited") {
+		Person(csa, "Customer Service Agent", "Deals with customer enquiries.")
 	
-	System_Boundary(c1, "Internet Banking") {
-		Container(web_app, "Web Application", "Java, Spring MVC", "Delivers the static content and the Internet banking SPA")
-		Container(spa, "Single-Page App", "JavaScript, Angular", "Provides all the Internet banking functionality to cutomers via their web browser")
-		Container(mobile_app, "Mobile App", "C#, Xamarin", "Provides a limited subset of the Internet banking functionality to customers via their mobile device")
-		ContainerDb(database, "Database", "SQL Database", "Stores user registration information, hashed auth credentials, access logs, etc.")
-		Container(backend_api, "API Application", "Java, Docker Container", "Provides Internet banking functionality via API", $tags="backend container")
+		System(ecommerce, "E-commerce System", "Allows customers to buy widgts online via the widgets.com website.")
+	
+		System(fulfilment, "Fulfilment System", "Responsible for processing and shipping of customer orders.")
 	}
 	
-	System_Ext(email_system, "E-Mail System", "The internal Microsoft Exchange system")
-	System_Ext(banking_system, "Mainframe Banking System", "Stores all of the core banking information about customers, accounts, transactions, etc.")
+	System(taxamo, "Taxamo", "Calculates local tax (for EU B2B customers) and acts as a front-end for Braintree Payments.")
 	
-	Rel(customer, web_app, "Uses", "HTTPS")
-	Rel(customer, spa, "Uses", "HTTPS")
-	Rel(customer, mobile_app, "Uses")
+	System(braintree, "Braintree Payments", "Processes credit card payments on behalf of Widgets Limited.")
 	
-	Rel_Neighbor(web_app, spa, "Delivers")
-	Rel(spa, backend_api, "Uses", "async, JSON/HTTPS", $tags="async")
-	Rel(mobile_app, backend_api, "Uses", "async, JSON/HTTPS", $tags="async")
-	Rel_Back_Neighbor(database, backend_api, "Reads from and writes to", "sync, JDBC")
+	System(post, "Jersey Post", "Calculates worldwide shipping costs for packages.")
 	
-	Rel_Back(customer, email_system, "Sends e-mails to")
-	Rel_Back(email_system, backend_api, "Sends e-mails using", "sync, SMTP")
-	Rel_Neighbor(backend_api, banking_system, "Uses", "sync/async, XML/HTTPS", $tags="sync/async")
+	Rel_R(customer, csa, "Asks questions to", "Telephone")
 	
-	SHOW_LEGEND()
+	Rel_R(customer, ecommerce, "Places orders for widgets using")
+	
+	Rel(csa, ecommerce, "Looks up order information using")
+	
+	Rel_R(ecommerce, fulfilment, "Sends order information to")
+	
+	Rel_D(fulfilment, post, "Gets shipping charges from")
+	
+	Rel_D(ecommerce, taxamo, "Delegates credit card processing to")
+	
+	Rel_L(taxamo, braintree, "Uses for credit card processing")
+	
+	Lay_D(customer, braintree)
+	
 	@enduml
 	`
-	var test = &types.EncodedObj{}
-	test = pc42obj.Encode(pumlC4Str)
-	foo_marshalled, _ := json.Marshal(test)
-	fmt.Println(string(foo_marshalled)) // write response to ResponseWriter (w)
+	// do Parse stuff
+	var testObj = &types.EncodedObj{}
+	testObj = pc42obj.Parse(pumlC4Str)
 
-	// fmt.Println("OUTPUT", b)
+	// marshal to json
+	jsonMarshaled, _ := json.MarshalIndent(testObj, "", "\t")
 
+	// print json output
+	fmt.Println(string(jsonMarshaled))
+
+	// foreach Nodes as generic type
+	fmt.Println("------------------------------------------------------- Nodes ------------------------------------------------------")
+	foreachObjects(testObj.Nodes)
+
+	// foreach Relations as generic type
+	fmt.Println("----------------------------------------------------- Relations -----------------------------------------------------")
+	foreachObjects(testObj.Rels)
+
+}
+
+func foreachObjects(objMap []*types.ParserGenericType) {
+	for index, elem := range objMap {
+		fmt.Println("-----------------------------------------------------", index, "-----------------------------------------------------")
+		fmt.Println(" Object: ", elem.Object, " BoundaryAlias:", elem.BoundaryAlias, " IsRelation:", elem.IsRelation)
+		var node types.GenericC4Type
+		err := mapstructure.Decode(elem.Object, &node)
+		if err != nil {
+			log.Errorln("Some went wrong on map structure. ", err)
+		}
+
+		fmt.Println("\nAlias", node.Alias,
+			"\nGType", node.GType,
+			"\nLabel", node.Label,
+			"\nTechn", node.Techn,
+			"\nDescr", node.Descr,
+			"\nType", node.Type,
+			"\nIndex", node.Index,
+			"\nFrom", node.From,
+			"\nTo", node.To)
+
+		fmt.Println("")
+
+	}
 }
