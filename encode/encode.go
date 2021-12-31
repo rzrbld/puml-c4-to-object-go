@@ -80,10 +80,29 @@ func ParseMatch(match string, isBoundary bool, bAlias string) *types.ParserGener
 	var isRel bool
 	result := &types.ParserGenericType{}
 	// 0 is always boundary
-	strParts := strings.Split(match, "(")
-	nodeType := strings.TrimSpace(strParts[0])
-	strAttr := strings.Split(strParts[1], ")")[0]
+	reGetAttrib := regexp.MustCompile(`\((.*)\)`)
+	reAttr := reGetAttrib.FindAllString(match, -1)
+	strAttr := ""
+	trimmedAttrString := ""
+
+	if len(reAttr) > 0 {
+		trimmedAttrString = strings.TrimSpace(reAttr[0])
+		strAttr = trimBrackets(trimmedAttrString)
+	} else {
+		log.Errorln("Error empty attributes")
+	}
+
+	log.Traceln("newAttrString", trimmedAttrString, "Len:", len(reAttr))
+
+	getType := strings.Split(match, "(")
+	log.Traceln("getType", getType)
+
+	nodeType := strings.TrimSpace(getType[0])
+	log.Traceln("nodeType", nodeType)
+
 	attrSlice := SplitAtCommas(strAttr)
+	log.Traceln("attrSlice", attrSlice)
+
 	// attrSlice[0] is always alias name - trim it
 	attrSlice[0] = strings.Trim(attrSlice[0], " ")
 
@@ -104,6 +123,20 @@ func ParseMatch(match string, isBoundary bool, bAlias string) *types.ParserGener
 	result.IsRelation = isRel
 
 	return result
+}
+
+func trimBrackets(s string) string {
+	if len(s) > 0 {
+		s = s[:len(s)-1]
+	}
+	for i := range s {
+		if i > 0 {
+			return s[i:]
+		}
+	}
+	s = s[:0]
+
+	return s
 }
 
 func matchToTypes(nodeType string, nodeAlias string, nodeAttr []string, boundaryAlias string) (map[string]interface{}, string, bool) {

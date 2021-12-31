@@ -3,71 +3,126 @@
 Turns puml C4 notation in to structurized object
 
 ## QuckStart guide:
-look at `example/main.go`
 
-```golang
+Complete example located at `example/main.go`
 
-package main
+### 1. Prepare puml c4 content
+For example one string:
+``` 
+System(taxamo, "Taxamo", "Calculates local tax (for EU B2B customers) and acts as a front-end for Braintree Payments.")
 
-import (
-	"encoding/json"
-	"fmt"
+```
 
-	pc42obj "github.com/rzrbld/puml-c4-to-object-go"
-	"github.com/rzrbld/puml-c4-to-object-go/types"
-)
+### 2. Add parser
+```go
+    ...
+    pumlC4Str := `System(taxamo, "Taxamo", "Calculates local tax (for EU B2B customers) and acts as a front-end for Braintree Payments.")`
 
-func main() {
-	pumlC4Str := `
-	@startuml
-	!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
-	
-	SHOW_PERSON_OUTLINE()
-	AddElementTag("backend container", $fontColor=$ELEMENT_FONT_COLOR, $bgColor="#335DA5", $shape=EightSidedShape())
-	AddRelTag("async", $textColor=$ARROW_COLOR, $lineColor=$ARROW_COLOR, $lineStyle=DashedLine())
-	AddRelTag("sync/async", $textColor=$ARROW_COLOR, $lineColor=$ARROW_COLOR, $lineStyle=DottedLine())
-	
-	title Container diagram for Internet Banking System
-	
-	Person(customer, Customer, "A customer of the bank, with personal bank accounts")
-	
-	System_Boundary(c1, "Internet Banking") {
-		Container(web_app, "Web Application", "Java, Spring MVC", "Delivers the static content and the Internet banking SPA")
-		Container(spa, "Single-Page App", "JavaScript, Angular", "Provides all the Internet banking functionality to cutomers via their web browser")
-		Container(mobile_app, "Mobile App", "C#, Xamarin", "Provides a limited subset of the Internet banking functionality to customers via their mobile device")
-		ContainerDb(database, "Database", "SQL Database", "Stores user registration information, hashed auth credentials, access logs, etc.")
-		Container(backend_api, "API Application", "Java, Docker Container", "Provides Internet banking functionality via API", $tags="backend container")
-	}
-	
-	System_Ext(email_system, "E-Mail System", "The internal Microsoft Exchange system")
-	System_Ext(banking_system, "Mainframe Banking System", "Stores all of the core banking information about customers, accounts, transactions, etc.")
-	
-	Rel(customer, web_app, "Uses", "HTTPS")
-	Rel(customer, spa, "Uses", "HTTPS")
-	Rel(customer, mobile_app, "Uses")
-	
-	Rel_Neighbor(web_app, spa, "Delivers")
-	Rel(spa, backend_api, "Uses", "async, JSON/HTTPS", $tags="async")
-	Rel(mobile_app, backend_api, "Uses", "async, JSON/HTTPS", $tags="async")
-	Rel_Back_Neighbor(database, backend_api, "Reads from and writes to", "sync, JDBC")
-	
-	Rel_Back(customer, email_system, "Sends e-mails to")
-	Rel_Back(email_system, backend_api, "Sends e-mails using", "sync, SMTP")
-	Rel_Neighbor(backend_api, banking_system, "Uses", "sync/async, XML/HTTPS", $tags="sync/async")
-	
-	SHOW_LEGEND()
-	@enduml
-	`
-	var test = &types.EncodedObj{}
-	test = pc42obj.Parse(pumlC4Str)
-	foo_marshalled, _ := json.Marshal(test)
-	fmt.Println(string(foo_marshalled)) // write response to ResponseWriter (w)
+    // do Parse stuff
+	var testObj = &types.EncodedObj{}
+	testObj = pc42obj.Parse(pumlC4Str)
 
-	// fmt.Println("OUTPUT", b)
+	// marshal to json
+	jsonMarshaled, _ := json.MarshalIndent(testObj, "", "\t")
 
+	// print json output
+	fmt.Println(string(jsonMarshaled))
+
+    ...
+
+```
+
+### 3. Compile and run
+
+```json
+
+{
+	"Nodes": [
+		{
+			"Object": {
+				"Alias": "taxamo",
+				"Descr": "\"Calculates local tax (for EU B2B customers) and acts as a front-end for Braintree Payments.\"",
+				"GType": "System",
+				"Label": "\"Taxamo\""
+			},
+			"BoundaryAlias": "",
+			"IsRelation": false
+		}
+	],
+	"Rels": []
 }
 
 ```
 
-let's suggest you have puml C4 like this:
+## Little more complex example
+
+```go
+
+func main() {
+    //...
+    pumlC4Str := `System(taxamo, "Taxamo", "Calculates local tax (for EU B2B customers) and acts as a front-end for Braintree Payments.")`
+
+    // do Parse stuff
+	var testObj = &types.EncodedObj{}
+	testObj = pc42obj.Parse(pumlC4Str)
+
+    foreachObjects(testObj.Nodes)
+    //...
+}
+
+func foreachObjects(objMap []*types.ParserGenericType) {
+	for index, elem := range objMap {
+
+		fmt.Println("---", index, "---")
+		fmt.Println(" Object: ", elem.Object, " BoundaryAlias:", elem.BoundaryAlias, " IsRelation:", elem.IsRelation)
+
+		var node types.GenericC4Type
+		err := mapstructure.Decode(elem.Object, &node)
+		if err != nil {
+			log.Errorln("Kind of error. ", err)
+		}
+
+		fmt.Println("Alias", node.Alias,
+			"GType", node.GType,
+			"Label", node.Label,
+			"Techn", node.Techn,
+			"Descr", node.Descr,
+			"Type", node.Type,
+			"Index", node.Index,
+			"From", node.From,
+			"To", node.To)
+	}
+}
+
+```
+
+### Compile and run
+
+```
+--- 0 ---
+ Object:  map[Alias:taxamo Descr:"Calculates local tax (for EU B2B customers) and acts as a front-end for Braintree Payments." GType:System Label:"Taxamo"]  BoundaryAlias:   IsRelation: false
+
+Alias taxamo
+GType System
+Label "Taxamo"
+Techn
+Descr "Calculates local tax (for EU B2B customers) and acts as a front-end for Braintree Payments."
+Type
+Index
+From
+To
+
+```
+
+## Supported elements and attributes
+
+| Element | Supported attributes | Unsupported attrinbutes |
+| ------- | -------------------- | -------------------- | 
+| "Component", "ComponentDb", "ComponentQueue", "Component_Ext", "ComponentDb_Ext", "ComponentQueue_Ext", "Container", "ContainerDb", "ContainerQueue", "Container_Ext", "ContainerDb_Ext", "ContainerQueue_Ext"   | alias, label, techn, descr  |  sprite, tags, link |
+| "Person", "Person_Ext", "System", "System_Ext", "SystemDb", "SystemQueue", "SystemDb_Ext", "SystemQueue_Ext"  | alias, label, descr | sprite, tags, link |
+| "Enterprise_Boundary", "System_Boundary", "Container_Boundary" | alias, label | sprite, tags, link |
+| "Deployment_Node", "Deployment_Node_L", "Deployment_Node_R", "Node", "Node_L", "Node_R" | alias, label, type, descr | sprite, tags, link |
+| "Rel", "Rel_Back", "Rel_Neighbor", "Rel_Back_Neighbor", "Rel_D", "Rel_Down", "Rel_U", "Rel_Up", "Rel_L", "Rel_Left", "Rel_R", "Rel_Right" | from, to, label, techn, descr, | sprite, tags, link |
+| "RelIndex", "RelIndex_Back", "RelIndex_Neighbor", "RelIndex_Back_Neighbor", "RelIndex_D", "RelIndex_Down", "RelIndex_U", "RelIndex_Up", "RelIndex_L", "RelIndex_Left", "RelIndex_R", "RelIndex_Right" | e_index, from, to, label, techn, descr | sprite, tags, link |
+
 
