@@ -1,4 +1,4 @@
-package main
+package c4d
 
 import (
 	"github.com/rzrbld/puml-c4-to-object-go/encode"

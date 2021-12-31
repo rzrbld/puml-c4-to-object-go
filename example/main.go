@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	pc42obj "github.com/rzrbld/puml-c4-to-object-go"
+	pc42obj "github.com/rzrbld/puml-c4-to-object-go/main"
 )
 
 func main() {
