@@ -1,4 +1,4 @@
-package c4p
+package main
 
 import (
 	"github.com/rzrbld/puml-c4-to-object-go/encode"
