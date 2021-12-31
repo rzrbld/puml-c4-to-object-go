@@ -31,23 +31,25 @@ func ReadStrings(pumlc4String string) ([]*types.GlobalType, []*types.GlobalType)
 			for g, match2 := range re.FindAllString(match, -1) {
 				if g == 0 {
 					bName = GetAliasName(match2)
-					obj = ParseMatch(match2, g, true, "")
+					obj = ParseMatch(match2, true, "")
 
-					if obj.IsRelation {
-						frRels = append(frRels, obj)
-					} else {
-						frNodes = append(frNodes, obj)
+					if len(obj.Object) != 0 {
+						if obj.IsRelation {
+							frRels = append(frRels, obj)
+						} else {
+							frNodes = append(frNodes, obj)
+						}
 					}
 				} else {
-					obj = ParseMatch(match2, g, true, bName)
-
-					if obj.IsRelation {
-						frRels = append(frRels, obj)
-					} else {
-						frNodes = append(frNodes, obj)
+					obj = ParseMatch(match2, true, bName)
+					if len(obj.Object) != 0 {
+						if obj.IsRelation {
+							frRels = append(frRels, obj)
+						} else {
+							frNodes = append(frNodes, obj)
+						}
 					}
 				}
-
 			}
 		}
 	} else {
@@ -57,21 +59,21 @@ func ReadStrings(pumlc4String string) ([]*types.GlobalType, []*types.GlobalType)
 	log.Traceln("-------------- NODES and RELS ---------------------")
 
 	re := regexp.MustCompile(`(?m)(.*)\((.*),(.*)\)`)
-	for i, match := range re.FindAllString(str, -1) {
-		obj = ParseMatch(match, i, false, "")
-		if obj.IsRelation {
-			frRels = append(frRels, obj)
-		} else {
-			frNodes = append(frNodes, obj)
+	for _, match := range re.FindAllString(str, -1) {
+		obj = ParseMatch(match, false, "")
+		if len(obj.Object) != 0 {
+			if obj.IsRelation {
+				frRels = append(frRels, obj)
+			} else {
+				frNodes = append(frNodes, obj)
+			}
 		}
 	}
 
 	return frNodes, frRels
 }
 
-func ParseMatch(match string, i int, isBoundary bool, bAlias string) *types.GlobalType {
-
-	// i - it seems depricated
+func ParseMatch(match string, isBoundary bool, bAlias string) *types.GlobalType {
 
 	var obj = make(map[string]interface{})
 	var boundaryAlias string
