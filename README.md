@@ -15,6 +15,12 @@ System(taxamo, "Taxamo", "Calculates local tax (for EU B2B customers) and acts a
 
 ### 2. Add parser
 ```go
+    import (
+		...
+		pc42obj "github.com/rzrbld/puml-c4-to-object-go"
+		"github.com/rzrbld/puml-c4-to-object-go/types"
+		...
+	)
     ...
     pumlC4Str := `System(taxamo, "Taxamo", "Calculates local tax (for EU B2B customers) and acts as a front-end for Braintree Payments.")`
 
@@ -57,6 +63,13 @@ System(taxamo, "Taxamo", "Calculates local tax (for EU B2B customers) and acts a
 ## Little more complex example
 
 ```go
+
+import (
+		...
+		pc42obj "github.com/rzrbld/puml-c4-to-object-go"
+		"github.com/rzrbld/puml-c4-to-object-go/types"
+		...
+	)
 
 func main() {
     //...
