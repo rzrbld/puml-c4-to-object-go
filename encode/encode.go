@@ -163,7 +163,7 @@ func matchToTypes(nodeType string, nodeAlias string, nodeAttr []string, boundary
 		}
 		obj = structs.Map(node)
 
-	case "Person", "Person_Ext", "System", "System_Ext", "SystemDb", "SystemQueue", "SystemDb_Ext", "SystemQueue_Ext":
+	case "Person", "Person_Ext", "System", "System_Ext", "SystemDb", "SystemQueue", "SystemDb_Ext", "SystemQueue_Ext", "Enterprise": //Enterprise is fake
 		// $alias, $label, $descr="", $sprite="", $tags="", $link=""
 		nodeAttr = NormalizeArr(nodeAttr, 3)
 		node := &types.PersSystem{}
